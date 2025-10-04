@@ -1,8 +1,9 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import orderRouter from "./routes/order";
 
 const app = express();
-
+const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
@@ -16,4 +17,9 @@ app.get("/api/v1/test", (req: Request, res: Response) => {
   }
 })
 
-app.listen(3000);
+app.use("/api/v1/order", orderRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server running on PORT ${PORT}`)
+});
+
