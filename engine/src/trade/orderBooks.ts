@@ -106,6 +106,35 @@ export class OrderBook {
   createOrder(order: Order) {
     try {
       if (order.side == "BUY") {
+        const { executed, fills } = this.matchBuys(order)
+        // if it is filled, we don't keep it in the orderbook 
+        if (executed == order.quantity) {
+          return {
+            executed,
+            fills
+          }
+        }
+        // otherwise put in the orderbook
+        this.bids.push(order);
+        return {
+          executed,
+          fills
+        };
+      }
+      else if (order.side == "SELL") {
+        const { executed, fills } = this.matchSells(order);
+        order.filled = executed;
+        if (executed === order.quantity) {
+          return {
+            executed,
+            fills
+          }
+        }
+        this.asks.push(order);
+        return {
+          executed,
+          fills
+        }
       }
     } catch (error) {
       console.log("Error in creating order");
