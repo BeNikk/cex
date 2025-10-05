@@ -116,6 +116,7 @@ export class OrderBook {
         }
         // otherwise put in the orderbook
         this.bids.push(order);
+        this.bids.sort((a, b) => b.price - a.price);
         return {
           executed,
           fills
@@ -131,6 +132,7 @@ export class OrderBook {
           }
         }
         this.asks.push(order);
+        this.asks.sort((a, b) => a.price - b.price);
         return {
           executed,
           fills
