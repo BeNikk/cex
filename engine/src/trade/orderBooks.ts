@@ -72,7 +72,35 @@ export class OrderBook {
       executed
     };
   }
-  matchSells() {
+  matchSells(order: Order) {
+    const fills = [];
+    let executed = 0;
+    for (let i = 0; i < this.bids.length; i++) {
+      const bid = this.bids[i]!;
+      if (bid.price >= order.price && executed < order.quantity) {
+        const filledQty = Math.min((order.quantity - executed), bid.quantity);
+        executed += filledQty;
+        bid.filled += filledQty;
+        fills.push({
+          price: bid.price.toString(),
+          qty: filledQty,
+          tradeId: this.lastTradeId++,
+          otherUserId: bid.userId,
+          marketOrderId: bid.orderId
+        })
+      }
+    }
+    for (let i = 0; i < this.bids.length; i++) {
+      let bid = this.bids[i]!;
+      if (bid.filled === bid.quantity) {
+        this.bids.splice(i, 1);
+        i--;
+      }
+    }
+    return {
+      fills,
+      executed
+    };
 
   }
   createOrder(order: Order) {
