@@ -14,4 +14,4 @@ I happen to learn some Finance terms before building this, here are some
 - Arbitrage - Buying low on one market, selling high on another for profit.
 - Limit price - Even while making a market order, an upper cap to the price of asset is automatically put in order to get the asset at a fair price. This is also known as quote of the order. 
 - Price of an asset - is the price at which the last trade of that asset happened.
-
+- Depth - shows quantity of orders (both buy and sell) available at a particular time
