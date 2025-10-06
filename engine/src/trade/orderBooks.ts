@@ -142,6 +142,42 @@ export class OrderBook {
       console.log("Error in creating order");
       return;
     }
-
   }
+  getDepth() {
+    const bids: [string, string][] = [];
+    const asks: [string, string][] = [];
+
+    const bidsObj: { [key: string]: number } = {};
+    const asksObj: { [key: string]: number } = {};
+
+    for (let i = 0; i < this.bids.length; i++) {
+      const order = this.bids[i]!;
+      if (!bidsObj[order.price]) {
+        bidsObj[order.price] = 0;
+      }
+      bidsObj[order.price]! += order.quantity;
+    }
+
+    for (let i = 0; i < this.asks.length; i++) {
+      const order = this.asks[i]!;
+      if (!asksObj[order.price]) {
+        asksObj[order.price] = 0;
+      }
+      asksObj[order.price]! += order.quantity;
+    }
+
+    for (const price in bidsObj) {
+      bids.push([price, bidsObj[price]!.toString()]);
+    }
+
+    for (const price in asksObj) {
+      asks.push([price, asksObj[price]!.toString()]);
+    }
+
+    return {
+      bids,
+      asks
+    };
+  }
+
 }
