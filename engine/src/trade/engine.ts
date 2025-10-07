@@ -1,6 +1,8 @@
 import fs from "fs";
 import dotenv from "dotenv";
 import { OrderBook } from "./orderBooks";
+import { RedisManager } from "../redis/redis";
+import { error } from "console";
 dotenv.config();
 interface UserBalance {
   [key: string]: {
@@ -69,7 +71,55 @@ export class Engine {
   }
 
   process({ message, clientId }: any) {
+    switch (message.type) {
+      case 'CREATE_ORDER':
+        try {
+          //          const { executed, fills, orderId} = this;
 
+
+        } catch (error) {
+          console.log("Error in creating order in the engine");
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: "ORDER_CANCELLED",
+            payload: {
+              orderId: "",
+              executed: 0,
+              remaining: 0
+            }
+          })
+        }
+    }
   }
 
+  createOrder(userId: string, price: string, quantity: string, market: string, side: "BUY" | "SELL") {
+    const orderBook = this.orderBooks.find((o: any) => { o.ticker() == market });
+    const baseAsset = market.split("_")[0];
+    const quoteAsset = market.split("_")[1];
+    if (!orderBook) {
+      throw new Error("No orderbook found");
+    }
+    // check user funds    
+  }
+
+  checkAndUpdateFunds(baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", userId: string, asset: string, price: string, quantity: string) {
+    if (side == "BUY") {
+      if ((this.balances.get(userId)?.quoteAsset?.available || 0) < Number(quantity) * Number(price)) {
+        throw new Error("Insufficient balance");
+      }
+      //@ts-ignore
+      this.balances.get(userId)[quoteAsset]?.available = this.balances.get(userId)?.[quoteAsset].available - (Number(quantity) * Number(price));
+      //@ts-ignore
+      this.balances.get(userId)[quoteAsset].locked = this.balances.get(userId)?.[quoteAsset].locked + (Number(quantity) * Number(price));
+
+    }
+    else {
+      if ((this.balances.get(userId)?.[baseAsset]?.available || 0) < Number(quantity)) {
+        throw new Error("Insufficient funds");
+      }
+      //@ts-ignore
+      this.balances.get(userId)[baseAsset].available = this.balances.get(userId)?.[baseAsset].available - (Number(quantity));
+      //@ts-ignore
+      this.balances.get(userId)[baseAsset].locked = this.balances.get(userId)?.[baseAsset].locked + Number(quantity);
+    }
+  }
 }
