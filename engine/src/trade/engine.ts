@@ -105,6 +105,9 @@ export class Engine {
           }
           const quoteAsset = cancelMarket.split("_")[1];
           const order = cancelOrderbook.asks.find((o: Order) => o.orderId === orderId) || cancelOrderbook.bids.find((o: Order) => o.orderId === orderId);
+          if (order.userId != message.data.userId) {
+            throw new Error("Unauthorized: cannot cancel others' orders");
+          }
           if (!order) {
             console.log("No order found");
             throw new Error("No order found");
