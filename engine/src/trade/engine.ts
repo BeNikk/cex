@@ -1,6 +1,6 @@
 import fs from "fs";
 import dotenv from "dotenv";
-import { OrderBook } from "./orderBooks";
+import { Order, OrderBook } from "./orderBooks";
 import { RedisManager } from "../redis/redis";
 import { randomUUID } from "crypto";
 dotenv.config();
@@ -74,9 +74,15 @@ export class Engine {
     switch (message.type) {
       case 'CREATE_ORDER':
         try {
-          //          const { executed, fills, orderId} = this;
-
-
+          const { executed, fills, orderId } = this.createOrder(message.data.market, message.data.price, message.data.quantity, message.data.side, message.data.userId);
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: "ORDER_PLACED",
+            payload: {
+              orderId,
+              executed,
+              fills
+            }
+          });
         } catch (error) {
           console.log("Error in creating order in the engine");
           RedisManager.getInstance().sendToApi(clientId, {
@@ -88,6 +94,57 @@ export class Engine {
             }
           })
         }
+        break;
+      case 'CANCEL_ORDER':
+        try {
+          const orderId = message.data.orderId;
+          const cancelMarket = message.data.market;
+          const cancelOrderbook = this.orderBooks.find((o: any) => o.ticker() === cancelMarket);
+          if (!cancelOrderbook) {
+            throw new Error("No orderbook found");
+          }
+          const quoteAsset = cancelMarket.split("_")[1];
+          const order = cancelOrderbook.asks.find((o: Order) => o.orderId === orderId) || cancelOrderbook.bids.find((o: Order) => o.orderId === orderId);
+          if (!order) {
+            console.log("No order found");
+            throw new Error("No order found");
+          }
+          if (order.side === "buy") {
+            const price = cancelOrderbook.cancelBuys(order)
+            const leftQuantityPrice = (order.quantity - order.filled) * order.price;
+            //@ts-ignore
+            this.balances.get(order.userId)[BASE_CURRENCY].available += leftQuantityPrice;
+            //@ts-ignore
+            this.balances.get(order.userId)[BASE_CURRENCY].locked -= leftQuantityPrice;
+            if (price) {
+              this.sendUpdatedDepthAt(price.toString(), cancelMarket);
+            }
+          } else {
+            const price = cancelOrderbook.cancelSells(order)
+            const leftQuantity = order.quantity - order.filled;
+            //@ts-ignore
+            this.balances.get(order.userId)[quoteAsset].available += leftQuantity;
+            //@ts-ignore
+            this.balances.get(order.userId)[quoteAsset].locked -= leftQuantity;
+            if (price) {
+              this.sendUpdatedDepthAt(price.toString(), cancelMarket);
+            }
+          }
+
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: "ORDER_CANCELLED",
+            payload: {
+              orderId,
+              executedQty: 0,
+              remainingQty: 0
+            }
+          });
+
+
+        } catch (error) {
+          console.log("Error in cancelling order", error);
+        }
+        break;
     }
   }
 
@@ -109,8 +166,7 @@ export class Engine {
     }
     const { fills, executed } = orderBook.createOrder(order);
     this.updateFunds(userId, baseAsset, quoteAsset, side, fills, executed);
-
-
+    return { executed, fills, orderId: order.orderId };
   }
 
   checkAndUpdateFunds(baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", userId: string, asset: string, price: string, quantity: string) {
@@ -172,4 +228,23 @@ export class Engine {
       console.log("ERROR IN UPDATING FUNDS");
     }
   }
+  sendUpdatedDepthAt(price: string, market: string) {
+    const orderbook = this.orderBooks.find((o: any) => o.ticker() === market);
+    if (!orderbook) {
+      return;
+    }
+    const depth = orderbook.getDepth();
+    const updatedBids = depth?.bids.filter((x: any) => x[0] === price);
+    const updatedAsks = depth?.asks.filter((x: any) => x[0] === price);
+
+    RedisManager.getInstance().publishMessage(`depth@${market}`, {
+      stream: `depth@${market}`,
+      data: {
+        a: updatedAsks.length ? updatedAsks : [[price, "0"]],
+        b: updatedBids.length ? updatedBids : [[price, "0"]],
+        e: "depth"
+      }
+    });
+  }
+
 }
