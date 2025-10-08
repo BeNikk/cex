@@ -2,7 +2,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { OrderBook } from "./orderBooks";
 import { RedisManager } from "../redis/redis";
-import { error } from "console";
+import { randomUUID } from "crypto";
 dotenv.config();
 interface UserBalance {
   [key: string]: {
@@ -93,12 +93,24 @@ export class Engine {
 
   createOrder(userId: string, price: string, quantity: string, market: string, side: "BUY" | "SELL") {
     const orderBook = this.orderBooks.find((o: any) => { o.ticker() == market });
-    const baseAsset = market.split("_")[0];
-    const quoteAsset = market.split("_")[1];
+    const baseAsset = market.split("_")[0]!;
+    const quoteAsset = market.split("_")[1]!;
     if (!orderBook) {
       throw new Error("No orderbook found");
     }
-    // check user funds    
+    this.checkAndUpdateFunds(baseAsset, quoteAsset, side, userId, quoteAsset, price, quantity);
+    const order = {
+      price: Number(price),
+      quantity: Number(quantity),
+      orderId: randomUUID(),
+      filled: 0,
+      side: side,
+      userId: userId
+    }
+    const { fills, executed } = orderBook.createOrder(order);
+    this.updateFunds(userId, baseAsset, quoteAsset, side, fills, executed);
+
+
   }
 
   checkAndUpdateFunds(baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", userId: string, asset: string, price: string, quantity: string) {
@@ -120,6 +132,44 @@ export class Engine {
       this.balances.get(userId)[baseAsset].available = this.balances.get(userId)?.[baseAsset].available - (Number(quantity));
       //@ts-ignore
       this.balances.get(userId)[baseAsset].locked = this.balances.get(userId)?.[baseAsset].locked + Number(quantity);
+    }
+  }
+  updateFunds(userId: string, baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", fills: any, executed: number) {
+    try {
+      if (side == "BUY") {
+        fills.forEach((fill: any) => {
+          //@ts-ignore
+          // credit seller INR;
+          this.balances.get(fill.otherUserId)[quoteAsset].available = this.balances.get(fill.otherUserId)?.[quoteAsset].available + (fill.qty * fill.price);
+          //@ts-ignore
+          //Debit buyer locked INR
+          this.balances.get(userId)[quoteAsset].locked = this.balances.get(userId)?.[quoteAsset].locked - (fill.qty * fill.price);
+          //@ts-ignore
+          //debit seller locked stocks
+          this.balances.get(fill.otherUserId)[baseAsset].locked = this.balances.get(fill.otherUserId)?.[baseAsset].locked - fill.qty;
+          //@ts-ignore
+          // credit buyer stocks
+          this.balances.get(userId)[baseAsset].available = this.balances.get(userId)?.[baseAsset].available + fill.qty;
+        });
+      }
+      else {
+        fills.forEach((fill: any) => {
+          //@ts-ignore
+          // buyers money(other user) got subtracted since he/she has to buy the stock
+          this.balances.get(fill.otherUserId)[quoteAsset].locked = this.balances.get(fill.otherUserId)?.[quoteAsset].locked - (fill.qty * fill.price);
+          //@ts-ignore
+          //user who was selling got his money  
+          this.balances.get(userId)[quoteAsset].available = this.balances.get(userId)?.[quoteAsset].available + (fill.qty * fill.price);
+          //@ts-ignore
+          //buyer's stock balance is incrased
+          this.balances.get(fill.otherUserId)[baseAsset].available = this.balances.get(fill.otherUserId)?.[baseAsset].available + fill.qty;
+          //@ts-ignore
+          //seller stock balance decreased
+          this.balances.get(userId)[baseAsset].locked = this.balances.get(userId)?.[baseAsset].locked - (fill.qty);
+        });
+      }
+    } catch (error) {
+      console.log("ERROR IN UPDATING FUNDS");
     }
   }
 }
