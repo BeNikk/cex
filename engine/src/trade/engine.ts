@@ -145,8 +145,23 @@ export class Engine {
           console.log("Error in cancelling order", error);
         }
         break;
+      case 'GET_OPEN_ORDERS':
+        try {
+          const openOrderbook = this.orderBooks.find((o: any) => o.ticker() === message.data.market);
+          if (!openOrderbook) {
+            throw new Error("No orderbook found");
+          }
+          const openOrders = openOrderbook.getOpenOrders(message.data.userId);
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: "OPEN_ORDERS",
+            payload: openOrders
+          });
+        } catch (error) {
+          console.log("ERROR IN GETTING OPEN ORDERS", error);
+        }
     }
   }
+
 
   createOrder(userId: string, price: string, quantity: string, market: string, side: "BUY" | "SELL") {
     const orderBook = this.orderBooks.find((o: any) => { o.ticker() == market });
