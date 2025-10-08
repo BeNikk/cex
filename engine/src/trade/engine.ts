@@ -40,7 +40,7 @@ export class Engine {
 
   saveSnapshot() {
     const snapshotSnapshot = {
-      orderbooks: this.orderBooks.map((o: any) => o.getSnapshot()),
+      orderbooks: this.orderBooks.map((o: any) => o.getSnap()),
       balances: Array.from(this.balances.entries())
     }
     //should save to s3
@@ -74,7 +74,7 @@ export class Engine {
     switch (message.type) {
       case 'CREATE_ORDER':
         try {
-          const { executed, fills, orderId } = this.createOrder(message.data.market, message.data.price, message.data.quantity, message.data.side, message.data.userId);
+          const { executed, fills, orderId } = this.createOrder(message.data.userId, message.data.price, message.data.quantity, message.data.market, message.data.side);
           RedisManager.getInstance().sendToApi(clientId, {
             type: "ORDER_PLACED",
             payload: {
@@ -84,7 +84,7 @@ export class Engine {
             }
           });
         } catch (error) {
-          console.log("Error in creating order in the engine");
+          console.log("Error in creating order in the engine", error);
           RedisManager.getInstance().sendToApi(clientId, {
             type: "ORDER_CANCELLED",
             payload: {
@@ -198,7 +198,7 @@ export class Engine {
 
 
   createOrder(userId: string, price: string, quantity: string, market: string, side: "BUY" | "SELL") {
-    const orderBook = this.orderBooks.find((o: any) => { o.ticker() == market });
+    const orderBook = this.orderBooks.find((o: any) => { return o.ticker() == market });
     const baseAsset = market.split("_")[0]!;
     const quoteAsset = market.split("_")[1]!;
     if (!orderBook) {
@@ -219,24 +219,35 @@ export class Engine {
   }
 
   checkAndUpdateFunds(baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", userId: string, asset: string, price: string, quantity: string) {
+    const userBalance = this.balances.get(userId);
+    if (!userBalance) {
+      throw new Error("User balance not found");
+    }
     if (side == "BUY") {
-      if ((this.balances.get(userId)?.quoteAsset?.available || 0) < Number(quantity) * Number(price)) {
+
+      if ((userBalance[quoteAsset]?.available || 0) < Number(quantity) * Number(price)) {
         throw new Error("Insufficient balance");
       }
-      //@ts-ignore
-      this.balances.get(userId)[quoteAsset]?.available = this.balances.get(userId)?.[quoteAsset].available - (Number(quantity) * Number(price));
-      //@ts-ignore
-      this.balances.get(userId)[quoteAsset].locked = this.balances.get(userId)?.[quoteAsset].locked + (Number(quantity) * Number(price));
+      userBalance[quoteAsset]!.available -= Number(quantity) * Number(price);
+      userBalance[quoteAsset]!.locked += Number(quantity) * Number(price);
 
+      //@ts-ignore
+      //this.balances.get(userId)[quoteAsset]?.available = this.balances.get(userId)?.[quoteAsset].available - (Number(quantity) * Number(price));
+      //@ts-ignore
+      //this.balances.get(userId)[quoteAsset].locked = this.balances.get(userId)?.[quoteAsset].locked + (Number(quantity) * Number(price));
     }
     else {
-      if ((this.balances.get(userId)?.[baseAsset]?.available || 0) < Number(quantity)) {
+
+      if ((userBalance[baseAsset]?.available || 0) < Number(quantity)) {
         throw new Error("Insufficient funds");
       }
+      userBalance[baseAsset]!.available -= Number(quantity);
+      userBalance[baseAsset]!.locked += Number(quantity);
+
       //@ts-ignore
-      this.balances.get(userId)[baseAsset].available = this.balances.get(userId)?.[baseAsset].available - (Number(quantity));
+      //this.balances.get(userId)[baseAsset].available = this.balances.get(userId)?.[baseAsset].available - (Number(quantity));
       //@ts-ignore
-      this.balances.get(userId)[baseAsset].locked = this.balances.get(userId)?.[baseAsset].locked + Number(quantity);
+      //this.balances.get(userId)[baseAsset].locked = this.balances.get(userId)?.[baseAsset].locked + Number(quantity);
     }
   }
   updateFunds(userId: string, baseAsset: string, quoteAsset: string, side: "BUY" | "SELL", fills: any, executed: number) {
