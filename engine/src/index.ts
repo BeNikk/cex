@@ -10,8 +10,8 @@ async function main() {
       continue;
     }
     else {
-      // process in the engine class
-      // engine.process(JSON.parse(response))
+      //  process in the engine class
+      engine.process(JSON.parse(response))
     }
   }
 }

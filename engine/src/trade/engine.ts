@@ -159,6 +159,40 @@ export class Engine {
         } catch (error) {
           console.log("ERROR IN GETTING OPEN ORDERS", error);
         }
+        break;
+      case 'GET_DEPTH':
+        try {
+          const market = message.data.market;
+          const orderbook = this.orderBooks.find((o: any) => o.ticker() === market);
+          if (!orderbook) {
+            throw new Error("No orderbook found");
+          }
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: "DEPTH",
+            payload: orderbook.getDepth()
+          });
+        } catch (error) {
+          console.log("Error in getting market depth", error);
+        }
+        break;
+      case 'ADD_BALANCE':
+        try {
+          const userId = message.data.userId;
+          const amount = Number(message.data.amount);
+          const userBalance = this.balances.get(userId);
+          if (!userBalance) {
+            this.balances.set(userId, {
+              [BASE_CURRENCY]: {
+                available: amount,
+                locked: 0
+              }
+            });
+          } else {
+            userBalance[BASE_CURRENCY]!.available += amount;
+          }
+        } catch (error) {
+          console.log("Error in adding funds", error);
+        }
     }
   }
 
