@@ -155,6 +155,9 @@ export class Engine {
             throw new Error("No orderbook found");
           }
           const openOrders = openOrderbook.getOpenOrders(message.data.userId);
+          if (openOrders.userId != message.data.userId) {
+            throw new Error("Unauthorized");
+          }
           RedisManager.getInstance().sendToApi(clientId, {
             type: "OPEN_ORDERS",
             payload: openOrders

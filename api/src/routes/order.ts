@@ -38,6 +38,23 @@ orderRouter.delete('/', async (req: Request, res: Response) => {
     res.json(response.payload);
   } catch (error) {
     console.log("Error in deleting order", error);
+    res.status(500).json({ message: "Internal server error in cancelling order", error: error });
+  }
+})
+
+orderRouter.get("/open", async (req: Request, res: Response) => {
+  try {
+    const response: any = await RedisManager.getInstance().sendAndWait({
+      type: 'GET_OPEN_ORDERS',
+      data: {
+        userId: req.query.userId as string,
+        market: req.query.market as string
+      }
+    });
+    res.json(response.payload);
+  } catch (error) {
+    console.log("Error in getting open orders for the user", error);
+    res.status(500).json({ message: "Internal server error in getting open orders", error });
   }
 })
 
