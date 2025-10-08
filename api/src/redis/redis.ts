@@ -8,7 +8,7 @@ export class RedisManager {
 
   private constructor() {
     this.client = createClient();
-    this.client.connect;
+    this.client.connect();
     this.publisher = createClient();
     this.publisher.connect()
   }
@@ -20,7 +20,7 @@ export class RedisManager {
   }
   //publishing to queue and then waiting for it 
   public sendAndWait(message: any) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const id = this.getRandomId();
       this.client.subscribe(id, (message) => {
         this.client.unsubscribe(id);
