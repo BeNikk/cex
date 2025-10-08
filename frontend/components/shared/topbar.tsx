@@ -1,6 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { ListCollapse } from "lucide-react";
+
 
 export default function TopBar() {
   return (
@@ -16,26 +26,61 @@ export default function TopBar() {
             Backpack
           </p>
         </Link>
-        <Link href={`/trade/SOL_USDC`}>
-          <p className="text-[#969faf] text-sm font-bold">
-            Trade
-          </p>
-        </Link>
-        <Link href={'https://github.com/BeNikk/cex'}>
-          <p className="text-[#969faf] text-sm font-bold">
-            Star
-          </p>
-        </Link>
-        <Link href={'https://github.com/BeNikk/cex/blob/main/README.md'}>
-          <p className="text-[#969faf] text-sm font-bold">
-            Learn
-          </p>
-        </Link>
-        <Link href={'https://backpack.exchange'}>
-          <p className="text-[#969faf] text-sm font-bold">
-            Original
-          </p>
-        </Link>
+        <div className="sm:hidden">
+          <Sheet>
+            <SheetTrigger className="h-4 w-4">
+              <ListCollapse />
+            </SheetTrigger>
+            <SheetContent className="bg-[#0e0f14]">
+              <SheetHeader>
+                <SheetDescription className="flex flex-col items-center justify-center gap-6 mt-10">
+                  <Link href={`/trade/SOL_USDC`}>
+                    <p className="text-[#969faf] text-sm font-bold">
+                      Trade
+                    </p>
+                  </Link>
+                  <Link href={'https://github.com/BeNikk/cex'}>
+                    <p className="text-[#969faf] text-sm font-bold">
+                      Star
+                    </p>
+                  </Link>
+                  <Link href={'https://github.com/BeNikk/cex/blob/main/README.md'}>
+                    <p className="text-[#969faf] text-sm font-bold">
+                      Learn
+                    </p>
+                  </Link>
+                  <Link href={'https://backpack.exchange'}>
+                    <p className="text-[#969faf] text-sm font-bold">
+                      Original
+                    </p>
+                  </Link>
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+        </div>
+        <div className="hidden sm:flex sm:flex-row sm:items-center sm:gap-2 ">
+          <Link href={`/trade/SOL_USDC`}>
+            <p className="text-[#969faf] text-sm font-bold">
+              Trade
+            </p>
+          </Link>
+          <Link href={'https://github.com/BeNikk/cex'}>
+            <p className="text-[#969faf] text-sm font-bold">
+              Star
+            </p>
+          </Link>
+          <Link href={'https://github.com/BeNikk/cex/blob/main/README.md'}>
+            <p className="text-[#969faf] text-sm font-bold">
+              Learn
+            </p>
+          </Link>
+          <Link href={'https://backpack.exchange'}>
+            <p className="text-[#969faf] text-sm font-bold">
+              Original
+            </p>
+          </Link>
+        </div>
       </div>
       <div className="flex flex-row items-center gap-2">
         <Button className="bg-[#152b23] text-[#00c279] font-bold ">
