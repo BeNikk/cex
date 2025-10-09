@@ -84,10 +84,10 @@ export default function TopBar() {
       </div>
       <div className="flex flex-row items-center gap-2">
         <Button className="bg-[#152b23] text-[#00c279] font-bold ">
-          Signup
+          Trade
         </Button>
         <Button className="bg-[#192439] text-[#498ff6] font-bold text-sm">
-          Signin
+          On Ramp
         </Button>
       </div>
     </div>
