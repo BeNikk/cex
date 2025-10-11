@@ -1,7 +1,7 @@
 import { getTicker } from "@/lib/request";
 import { useEffect, useState } from "react";
 
-interface MarketBarProps {
+export interface MarketBarProps {
   market: string;
 }
 export default function MarketBar({ market }: MarketBarProps) {

@@ -1,5 +1,6 @@
 'use client';
 import MarketBar from "@/components/shared/marketbar";
+import Order from "@/components/shared/order";
 import TopBar from "@/components/shared/topbar";
 import { useParams } from "next/navigation"
 
@@ -9,12 +10,15 @@ export default function TradePage({ params }: { params: { market: string } }) {
   return (
     <div className="flex flex-col w-screen">
       <TopBar />
-      <div className="flex flex-row items-center w-full">
-        <div className="w-[70%]">
+      <div className="flex flex-row gap-2 w-full">
+        <div className="w-[70%] flex flex-col items-center">
           <MarketBar market={market?.toString() || ""} />
+          <div>
+            hello world
+          </div>
         </div>
         <div className="w-[30%]">
-          THIS IS FOR BUY SELL NOW
+          <Order market={market?.toString() ?? ""} />
         </div>
       </div>
     </div>
