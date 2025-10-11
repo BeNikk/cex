@@ -18,4 +18,4 @@ I happen to learn some Finance terms before building this, here are some
 
 ## Project Architecture
 
-![Architecture]('./Architecture.png')
+![Architecture](./Architecture.png)
