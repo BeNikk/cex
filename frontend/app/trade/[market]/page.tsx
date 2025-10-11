@@ -1,8 +1,9 @@
 'use client';
+import MarketBar from "@/components/shared/marketbar";
 import TopBar from "@/components/shared/topbar";
 import { useParams } from "next/navigation"
 
-export default function TradePage({ params }: { params: any }) {
+export default function TradePage({ params }: { params: { market: string } }) {
   const { market } = useParams();
   return (
     <div className="flex flex-col w-screen">
@@ -13,6 +14,8 @@ export default function TradePage({ params }: { params: any }) {
         </div>
         <div className="w-[30%]">
           hello
+          {market}
+          <MarketBar />
         </div>
       </div>
     </div>
