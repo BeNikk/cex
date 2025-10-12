@@ -219,6 +219,8 @@ export class Engine {
     }
     const { fills, executed } = orderBook.createOrder(order);
     this.updateFunds(userId, baseAsset, quoteAsset, side, fills, executed);
+    console.log(this.orderBooks[0].asks);
+    console.log(this.orderBooks[0].bids);
     return { executed, fills, orderId: order.orderId };
   }
 

@@ -17,7 +17,7 @@ export default function Order({ market, userId = "1" }: OrderProps) {
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [orderResult, setOrderResult] = useState<any | null>(null);
+  const [orderResult, setOrderResult] = useState<any>(null);
   const [error, setError] = useState("");
 
   const handleOrder = async (side: "BUY" | "SELL") => {
@@ -168,7 +168,7 @@ export default function Order({ market, userId = "1" }: OrderProps) {
               <div className="mt-2">
                 <p className="text-xs text-gray-400 mb-1">Fills:</p>
                 <div className="bg-[#23242a] rounded-lg p-2 space-y-1">
-                  {orderResult.fills.map((fill: any, i: number) => (
+                  {orderResult.fills && orderResult.fills.map((fill: any, i: number) => (
                     <div
                       key={i}
                       className="flex justify-between text-xs text-gray-300"
