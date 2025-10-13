@@ -223,6 +223,7 @@ export class Engine {
     console.log(this.orderBooks[0].bids);
     this.publisWsDepthUpdates(fills, price, side, market);
     this.publishWsTrades(fills, userId, market);
+    this.createDbTrades(fills, market, userId);
     return { executed, fills, orderId: order.orderId };
   }
 
@@ -364,6 +365,23 @@ export class Engine {
         }
       });
     }
+  }
+  createDbTrades(fills: any, market: string, userId: string) {
+    console.log("db trade createdd");
+    fills.forEach((fill: any) => {
+      RedisManager.getInstance().pushMessage({
+        type: "TRADE_ADDED",
+        data: {
+          market: market,
+          id: fill.tradeId.toString(),
+          isBuyerMaker: fill.otherUserId === userId,
+          price: fill.price,
+          quantity: fill.qty.toString(),
+          quoteQuantity: (fill.qty * Number(fill.price)).toString(),
+          timestamp: Date.now()
+        }
+      });
+    });
   }
 
 }

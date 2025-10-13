@@ -3,10 +3,10 @@ import { createClient } from 'redis';
 import { db, password, user } from './config';
 
 const pgClient = new Client({
-  user: user,
+  user: "cex",
   host: 'localhost',
-  database: db,
-  password: password,
+  database: "cex",
+  password: "cex",
   port: 5432,
 });
 pgClient.connect();
@@ -28,6 +28,8 @@ export async function startProcessor() {
       const query = 'INSERT INTO SOL_PRICES (time, price) VALUES ($1, $2)';
       const values = [timestamp, price];
       await pgClient.query(query, values);
+      console.log("added ");
     }
   }
 }
+startProcessor();
