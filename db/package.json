@@ -11,9 +11,12 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/pg": "^8.15.5",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/dotenv": "^6.1.1",
+    "dotenv": "^17.2.3",
     "pg": "^8.16.3"
   }
 }
