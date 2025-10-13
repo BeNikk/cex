@@ -13,7 +13,7 @@ async function seedDB() {
     await client.connect();
     console.log("Connected to Postgres");
 
-    await client.query(`DROP TABLE IF EXISTS sol_prices;`);
+    await client.query(`DROP TABLE IF EXISTS sol_prices CASCADE;`);
 
     await client.query(`
       CREATE TABLE sol_prices (

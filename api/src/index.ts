@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import orderRouter from "./routes/order";
 import { RedisManager } from "./redis/redis";
+import viewRouter from "./routes/viewRouter";
 
 const app = express();
 const PORT = 3000;
@@ -19,6 +20,7 @@ app.get("/api/v1/test", (req: Request, res: Response) => {
 })
 
 app.use("/api/v1/order", orderRouter);
+app.use("/api/v1/klines", viewRouter);
 app.get("/api/v1/tickers", (req: Request, res: Response) => {
   try {
     const tickers = [

@@ -17,6 +17,7 @@ export async function startProcessor() {
   console.log("Connected to Redis");
 
   while (true) {
+
     const response = await redisClient.rPop("db_processor");
     if (!response) continue;
 
@@ -24,9 +25,10 @@ export async function startProcessor() {
     console.log(data);
     if (data.type === "TRADE_ADDED") {
       const price = data.data.price;
+      const volume = data.data.quantity;
       const timestamp = new Date(data.data.timestamp);
-      const query = 'INSERT INTO SOL_PRICES (time, price) VALUES ($1, $2)';
-      const values = [timestamp, price];
+      const query = 'INSERT INTO SOL_PRICES (time, price,volume) VALUES ($1, $2,$3)';
+      const values = [timestamp, price, volume];
       await pgClient.query(query, values);
       console.log("added ");
     }
