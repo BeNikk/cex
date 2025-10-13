@@ -20,3 +20,37 @@ I happen to learn some Finance terms before building this, here are some
 ## Project Architecture
 
 ![Architecture](./Architecture.png)
+
+## About
+
+Centralised exchanges are fascinating. This repo is my naive attempt, to mimic the architecture of a trading exchange. I am using a distributed
+system approach, to keep things peristant, scalable and fast. 
+
+A primary metric in these systems is the trade execution time. I was able to achieve sub 10ms latency running my app locally, which is considered good.
+
+### Components Breakdown
+
+- **Backend API (TypeScript)**  
+  → Entry point for all client actions.  
+  → Forwards trade/order requests to Redis Queue and handles responses through Pub/Sub.
+
+- **Redis Queue**  
+  → Message queue ensuring asynchronous, high-throughput communication between backend and engine.
+
+- **Engine**  
+  → Core trading logic lives here.  
+  → Maintains in-memory **order books**, and user balances,  matches buy/sell orders, and publishes trade events.
+
+- **Pub/Sub System (Redis)**  
+  → Facilitates real-time communication between backend, engine, WebSocket server, and database processor.
+
+- **WebSocket Server**  
+  → Streams live tickers, trades, and order book updates directly to browsers.
+
+- **DB Processor**  
+  → Listens to trade events via Pub/Sub and updates the database asynchronously.
+
+- **Database (Postgres)**  
+  → Persistent store for trades.
+
+---
