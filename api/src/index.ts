@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import orderRouter from "./routes/order";
+import { RedisManager } from "./redis/redis";
 
 const app = express();
 const PORT = 3000;
@@ -37,6 +38,22 @@ app.get("/api/v1/tickers", (req: Request, res: Response) => {
   } catch (error) {
     console.log("Error in getting tickers", error);
     res.status(500).json({ message: "Internal server error in getting tickers" });
+  }
+})
+
+app.get("/api/v1/depth", async (req: Request, res: Response) => {
+  try {
+    const { symbol } = req.query;
+    const response = await RedisManager.getInstance().sendAndWait({
+      type: "GET_DEPTH",
+      data: {
+        market: symbol as string
+      }
+    })
+    res.status(200).json(response);
+  } catch (error) {
+    console.log("Error in getting depth");
+    res.status(500).json({ message: "Error in getting depth", error });
   }
 })
 app.listen(PORT, () => {
