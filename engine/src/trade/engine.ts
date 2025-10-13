@@ -221,6 +221,8 @@ export class Engine {
     this.updateFunds(userId, baseAsset, quoteAsset, side, fills, executed);
     console.log(this.orderBooks[0].asks);
     console.log(this.orderBooks[0].bids);
+    this.publisWsDepthUpdates(fills, price, side, market);
+    this.publishWsTrades(fills, userId, market);
     return { executed, fills, orderId: order.orderId };
   }
 
@@ -311,6 +313,52 @@ export class Engine {
         e: "depth"
       }
     });
+  }
+  publishWsTrades(fills: any, userId: string, market: string) {
+    fills.forEach((fill: any) => {
+      RedisManager.getInstance().publishMessage(`trade@${market}`, {
+        stream: `trade@${market}`,
+        data: {
+          e: "trade",
+          t: fill.tradeId,
+          m: fill.otherUserId === userId,
+          p: fill.price,
+          q: fill.qty.toString(),
+          s: market,
+        }
+      });
+    });
+  }
+  publisWsDepthUpdates(fills: any, price: string, side: "BUY" | "SELL", market: string) {
+    const orderbook = this.orderBooks.find((o: any) => o.ticker() === market);
+    if (!orderbook) {
+      return;
+    }
+    const depth = orderbook.getDepth();
+    if (side === "BUY") {
+      const updatedAsks = depth?.asks.filter((x: any) => fills.map((f: any) => f.price).includes(x[0].toString()));
+      const updatedBid = depth?.bids.find((x: any) => x[0] === price);
+      RedisManager.getInstance().publishMessage(`depth@${market}`, {
+        stream: `depth@${market}`,
+        data: {
+          a: updatedAsks,
+          b: updatedBid ? [updatedBid] : [],
+          e: "depth"
+        }
+      });
+    }
+    if (side === "SELL") {
+      const updatedBids = depth?.bids.filter((x: any) => fills.map((f: any) => f.price).includes(x[0].toString()));
+      const updatedAsk = depth?.asks.find((x: any) => x[0] === price);
+      RedisManager.getInstance().publishMessage(`depth@${market}`, {
+        stream: `depth@${market}`,
+        data: {
+          a: updatedAsk ? [updatedAsk] : [],
+          b: updatedBids,
+          e: "depth"
+        }
+      });
+    }
   }
 
 }
