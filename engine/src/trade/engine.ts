@@ -315,6 +315,7 @@ export class Engine {
     });
   }
   publishWsTrades(fills: any, userId: string, market: string) {
+    console.log("publishing to user via trades handler")
     fills.forEach((fill: any) => {
       RedisManager.getInstance().publishMessage(`trade@${market}`, {
         stream: `trade@${market}`,
@@ -328,14 +329,18 @@ export class Engine {
         }
       });
     });
+    console.log("published ws trades");
   }
   publisWsDepthUpdates(fills: any, price: string, side: "BUY" | "SELL", market: string) {
+    console.log(market);
     const orderbook = this.orderBooks.find((o: any) => o.ticker() === market);
     if (!orderbook) {
       return;
     }
+    console.log("publishing to user in ws depth");
     const depth = orderbook.getDepth();
     if (side === "BUY") {
+      console.log("insdie ws depth buy")
       const updatedAsks = depth?.asks.filter((x: any) => fills.map((f: any) => f.price).includes(x[0].toString()));
       const updatedBid = depth?.bids.find((x: any) => x[0] === price);
       RedisManager.getInstance().publishMessage(`depth@${market}`, {

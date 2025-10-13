@@ -9,6 +9,7 @@ export class Manager {
   public static getInstance() {
     if (!this.instance) {
       const manager = new Manager();
+      this.instance = manager;
       return manager;
     }
     return this.instance;
@@ -29,5 +30,4 @@ export class Manager {
   public getUser(id: string) {
     return this.users.get(id);
   }
-
 }
