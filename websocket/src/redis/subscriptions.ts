@@ -9,20 +9,22 @@ export class SubscriptionManager {
 
   private constructor() {
     this.redisClient = createClient();
-    this.redisClient.connect();
+    this.redisClient.connect().then(() => {
+      console.log("redis client connected");
+    });
   }
   public static getSubscriptionInstance() {
     if (!this.instance) {
       const manager = new SubscriptionManager();
       this.instance = manager;
-      return manager;
+      return this.instance;
     }
     return this.instance;
   }
 
   private redisCallbackHandler = (message: string, channel: string) => {
     const parsedMessage = JSON.parse(message);
-    console.log(parsedMessage);
+    console.log("inside redis callback handler", parsedMessage);
     this.reverseSubscriptions.get(channel)?.forEach((s: any) => Manager.getInstance().getUser(s)?.emit(parsedMessage));
     console.log("message emitted");
   }

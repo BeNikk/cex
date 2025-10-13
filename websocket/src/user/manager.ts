@@ -10,7 +10,7 @@ export class Manager {
     if (!this.instance) {
       const manager = new Manager();
       this.instance = manager;
-      return manager;
+      return this.instance;
     }
     return this.instance;
   }

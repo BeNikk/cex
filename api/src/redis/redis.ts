@@ -15,6 +15,7 @@ export class RedisManager {
   public static getInstance() {
     if (!this.instance) {
       this.instance = new RedisManager();
+      return this.instance;
     }
     return this.instance;
   }
