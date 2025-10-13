@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import crypto from "crypto";
 import { User } from "./user";
+import { SubscriptionManager } from "../redis/subscriptions";
 export class Manager {
   static instance: Manager;
   private users = new Map();
@@ -16,8 +17,14 @@ export class Manager {
     const id = crypto.randomUUID();
     const user = new User(id, ws);
     this.users.set(id, user);
-    //registering and deleting the user instance
+    this.registerOnClose(ws, id);
     return user;
+  }
+  private registerOnClose(ws: WebSocket, id: string) {
+    ws.on("close", () => {
+      this.users.delete(id);
+      SubscriptionManager.getSubscriptionInstance().userLeft(id);
+    });
   }
   public getUser(id: string) {
     return this.users.get(id);
