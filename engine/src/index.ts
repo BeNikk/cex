@@ -1,7 +1,11 @@
 import { createClient } from 'redis';
 import { Engine } from './trade/engine';
 async function main() {
-  const client = createClient();
+  const client = createClient(
+    {
+      url: "redis://redis:6379"
+    })
+    ;
   await client.connect();
   const engine = new Engine();
   while (true) {

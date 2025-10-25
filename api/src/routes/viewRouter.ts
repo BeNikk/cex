@@ -5,7 +5,7 @@ const viewRouter = Router();
 
 const client = new Client({
   user: 'cex',
-  host: 'localhost',
+  host: 'postgres',
   database: 'cex',
   password: 'cex',
   port: 5432,

@@ -53,4 +53,6 @@ A primary metric in these systems is the trade execution time. I was able to ach
 - **Database (Postgres)**  
   → Persistent store for trades.
 
+- Docker 
+ -> For running the entire app, run `docker compose up --build`
 ---
