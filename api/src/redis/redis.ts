@@ -7,9 +7,13 @@ export class RedisManager {
   private static instance: RedisManager;
 
   private constructor() {
-    this.client = createClient();
+    this.client = createClient({
+      url: "redis://redis:6379"
+    });
     this.client.connect();
-    this.publisher = createClient();
+    this.publisher = createClient({
+      url: "redis://redis:6379"
+    });
     this.publisher.connect()
   }
   public static getInstance() {

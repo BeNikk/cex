@@ -8,7 +8,9 @@ export class SubscriptionManager {
   private redisClient: RedisClientType;
 
   private constructor() {
-    this.redisClient = createClient();
+    this.redisClient = createClient({
+      url: "redis://redis:6379"
+    });
     this.redisClient.connect().then(() => {
       console.log("redis client connected");
     });

@@ -4,14 +4,16 @@ import { db, password, user } from './config';
 
 const pgClient = new Client({
   user: "cex",
-  host: 'localhost',
+  host: 'postgres',
   database: "cex",
   password: "cex",
   port: 5432,
 });
 
 export async function startProcessor() {
-  const redisClient = createClient();
+  const redisClient = createClient({
+    url: "redis://redis:6379"
+  });
   await redisClient.connect();
   await pgClient.connect();
 
